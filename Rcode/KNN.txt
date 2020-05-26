@@ -1,0 +1,96 @@
+getwd()
+setwd("C://Users//vaish//OneDrive//Desktop//Data Analytics//DA Project 2020 (diamonds)//diamonds.csv")
+knndata <- read.csv(file = "diamonds.csv", header = T)
+head(knndata)
+
+#convert outcome variable into labels 
+cost <- knndata$price
+mean(cost)
+cost <- cut(cost, breaks = c(0,4000,1000000), labels = c("Inexpensive","Expensive") )
+head(cost)
+
+knndata$price <- cost
+head(knndata)
+
+#check for zero in dataset
+lapply(knndata, function(x) all(x == 0))
+
+#removing the sr no column
+knndata$X <- NULL
+
+#check for collinearity
+num <- data.frame(knndata$carat, knndata$depth, knndata$table, knndata$x, knndata$y, knndata$z)
+head(num)
+cor(num)
+
+#collinearity between carat x,y and z is very high so we remove the variables
+num$knndata.x <- NULL
+cor(num)
+num$knndata.y <- NULL
+cor(num)
+num$knndata.z <- NULL
+cor(num)
+
+knndata$x <- NULL
+knndata$y <- NULL
+knndata$z <- NULL
+
+#Normalization
+#extract numerical variables as we have categorical columns
+num.vars<-sapply(knndata, is.numeric)
+#normalize selected data using function scale
+knndata[num.vars] <-lapply(knndata[num.vars], scale)
+#min-max normalization to scale [0, 1]
+knndata[num.vars] <-apply(knndata[num.vars], 2, FUN = function(x) (x - min(x))/(max(x)-min(x)))
+head(knndata)  
+
+
+#dummy variables
+#install.packages("dummies")
+library(dummies)
+as.factor(knndata$cut)
+knndata <- dummy.data.frame(knndata,names=c("cut"))
+knndata = knndata [ , -c(2) ]
+#(dia_dummy)
+as.factor(knndata$color)
+knndata <- dummy.data.frame(knndata,names=c("color"))
+knndata = knndata [ , -c(6) ]
+#head(dia_dummy)
+as.factor(knndata$clarity)
+knndata <- dummy.data.frame(knndata,names=c("clarity"))
+knndata = knndata [ , -c(12) ]
+head(knndata)
+
+
+#hold out evaluation
+knndata <- knndata[sample(nrow(knndata)),]
+select.dataknn <- sample (1:nrow(knndata), 0.8*nrow(knndata))
+train.dataknn <- knndata[select.dataknn,]
+test.dataknn <- knndata[-select.dataknn,]
+test.knn <- test.dataknn
+train.knn <- train.dataknn
+head(train.knn)
+
+nrow(test.svm)
+nrow(train.svm)
+
+train.knn$price<-NULL
+test.knn$price<-NULL
+train.def <- train.dataknn$price
+test.def <- test.dataknn$price
+
+library(class)
+knn.133 <- knn(train.knn, test.knn, train.def, k=133)
+knn.155 <- knn(train.knn, test.knn, train.def, k=155)
+knn.211 <- knn(train.knn, test.knn, train.def, k=211)
+#install.packages("Metrics", dependencies = TRUE)
+library(Metrics)
+accuracy(test.def, knn.133)
+accuracy(test.def, knn.155)
+accuracy(test.def, knn.211)
+
+
+
+
+
+

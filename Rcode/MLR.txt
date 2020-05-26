@@ -1,0 +1,573 @@
+getwd()
+setwd("C://Users//vaish//OneDrive//Desktop//Data Analytics//DA Project 2020 (diamonds)//diamonds.csv")
+dia_og <- read.csv(file = "diamonds.csv", header = T)
+head(dia_og)
+
+#check the structure of data
+class(dia_og)
+str(dia_og)
+dim(dia_og)
+names(dia_og)
+#----------------------------------------------------------------------------------------------
+
+#remaned the id column
+names(dia_og)[names(dia_og) == "X"] <- "id"
+names(dia_og)
+head(dia_og)
+#----------------------------------------------------------------------------------------------
+
+#checking for missing values and null values
+colnames(dia_og)[colSums(is.na(dia_og)) > 0]
+#op: no missing values
+is.null(dia_og)
+#op: is FALSE
+#---------------------------------------------------------------------------------------------
+
+#describing the categorical variable.
+
+# install and load library plyr
+#install.packages('plyr')
+library(plyr)
+# call the function count in plyr
+cnt <- count(dia_og$cut)
+opt <- cnt
+cf <- opt$freq
+labels <- opt$x
+crf <- table(dia_og$cut)/nrow(dia_og)
+# produce bar graph by using class frequency
+barplot(cf,names.arg=labels)
+
+
+cnt1 <- count(dia_og$color)
+opt <- cnt1
+cf <- opt$freq 
+labels <- opt$x
+crf <- table(dia_og$cut)/nrow(dia_og)
+# produce bar graph by using class frequency
+barplot(cf,names.arg=labels)
+
+
+cnt2 <- count(dia_og$clarity)
+opt <- cnt2
+cf <- opt$freq 
+labels <- opt$x
+crf <- table(dia_og$cut)/nrow(dia_og)
+# produce bar graph by using class frequency
+barplot(cf,names.arg=labels)
+#---------------------------------------------------------------------------------------------------
+
+#describing the numerical variable.
+# plot histogram with normal curve
+h<-hist(dia_og$carat, main="Histogram with Normal Curve for carat")
+xfit<-seq(min(dia_og$carat),max(dia_og$carat),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$carat),sd=sd(dia_og$carat))
+yfit <- yfit*diff(h$mids[1:2])*length(dia_og$carat)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$carat)
+var(dia_og$carat)
+
+h1<-hist(dia_og$depth, main="Histogram with Normal Curve for depth")
+xfit<-seq(min(dia_og$depth),max(dia_og$depth),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$depth),sd=sd(dia_og$depth))
+yfit <- yfit*diff(h1$mids[1:2])*length(dia_og$depth)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$depth)
+var(dia_og$depth)
+
+h1<-hist(dia_og$table, main="Histogram with Normal Curve for table")
+xfit<-seq(min(dia_og$table),max(dia_og$table),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$table),sd=sd(dia_og$table))
+yfit <- yfit*diff(h1$mids[1:2])*length(dia_og$table)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$table)
+var(dia_og$table)
+
+h1<-hist(dia_og$x, main="Histogram with Normal Curve for x")
+xfit<-seq(min(dia_og$x),max(dia_og$x),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$x),sd=sd(dia_og$x))
+yfit <- yfit*diff(h1$mids[1:2])*length(dia_og$x)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$x)
+var(dia_og$x)
+
+h1<-hist(dia_og$y, main="Histogram with Normal Curve for y")
+xfit<-seq(min(dia_og$y),max(dia_og$y),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$y),sd=sd(dia_og$y))
+yfit <- yfit*diff(h1$mids[1:2])*length(dia_og$y)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$y)
+var(dia_og$y)
+
+h1<-hist(dia_og$z, main="Histogram with Normal Curve for z")
+xfit<-seq(min(dia_og$z),max(dia_og$z),length=40)
+yfit<-dnorm(xfit,mean=mean(dia_og$z),sd=sd(dia_og$z))
+yfit <- yfit*diff(h1$mids[1:2])*length(dia_og$z)
+lines(xfit, yfit, col="blue", lwd=2)
+mean(dia_og$z)
+var(dia_og$z)
+#--------------------------------------------------------------------------------------------------
+
+#converting the categorical variables into numerical variables
+#install.packages("dummies")
+library(dummies)
+as.factor(dia_og$cut)
+dia_dummy <- dummy.data.frame(dia_og,names=c("cut"))
+dia_dummy = dia_dummy [ , -c(3) ]
+#(dia_dummy)
+as.factor(dia_og$color)
+dia_dummy <- dummy.data.frame(dia_dummy,names=c("color"))
+dia_dummy = dia_dummy [ , -c(7) ]
+#head(dia_dummy)
+as.factor(dia_og$clarity)
+dia_dummy <- dummy.data.frame(dia_dummy,names=c("clarity"))
+dia_dummy = dia_dummy [ , -c(13) ]
+head(dia_dummy)
+#---------------------------------------------------------------------------------------------------
+
+#Check the correlation between x and y variables.
+plot(dia_dummy$price~dia_dummy$carat)
+cor(dia_dummy$carat,dia_dummy$price)
+
+plot(dia_dummy$price~dia_dummy$depth)
+cor(dia_dummy$depth,dia_dummy$price)
+#cor = -0.01 too small
+#log transformation
+dia_dummy$depth_log <- log(dia_dummy$depth)
+plot(dia_dummy$price~dia_dummy$depth_log)
+cor(dia_dummy$depth_log,dia_dummy$price)
+dia_dummy$depth_log <- NULL
+  #cor= -0.0115 not much difference 
+#square
+dia_dummy$depth_sq <- dia_dummy$depth*dia_dummy$depth
+plot(dia_dummy$price~dia_dummy$depth_sq)
+cor(dia_dummy$depth_sq,dia_dummy$price)
+  #cor = -0.009 more small
+dia_dummy$depth_sq <- NULL
+#inverse 
+dia_dummy$depth_in <- 1/(dia_dummy$depth)
+plot(dia_dummy$price~dia_dummy$depth_in)
+cor(dia_dummy$depth_in,dia_dummy$price)
+#cor = 0.012 no much diff
+dia_dummy$depth_in <- NULL
+
+
+plot(dia_dummy$price~dia_dummy$table)
+cor(dia_dummy$table,dia_dummy$price)
+#cor = 0.127
+#log transformation
+dia_dummy$table_log <- log(dia_dummy$table)
+plot(dia_dummy$price~dia_dummy$table_log)
+cor(dia_dummy$table_log,dia_dummy$price)
+dia_dummy$table_log <- NULL
+#cor= 0.1288 not much difference 
+#square
+dia_dummy$table_sq <- dia_dummy$table*(dia_dummy$table)
+plot(dia_dummy$price~dia_dummy$table_sq)
+cor(dia_dummy$table_sq,dia_dummy$price)
+dia_dummy$table_sq <- NULL
+#cor = 0.125 no diff
+#inverse 
+dia_dummy$table_in <- 1/(dia_dummy$table)
+plot(dia_dummy$price~dia_dummy$table_in)
+cor(dia_dummy$table_in,dia_dummy$price)
+dia_dummy$table_in <- NULL
+#cor = -0.13 no much diff
+
+
+plot(dia_dummy$price~dia_dummy$x)
+cor(dia_dummy$x,dia_dummy$price)
+
+
+plot(dia_dummy$price~dia_dummy$y)
+cor(dia_dummy$y,dia_dummy$price)
+
+
+plot(dia_dummy$price~dia_dummy$z)
+cor(dia_dummy$z,dia_dummy$price)
+
+plot(dia_dummy$price~dia_dummy$cutGood)
+cor(dia_dummy$cutGood,dia_dummy$price)
+
+#----------------------------------------------------------------------------------------------
+
+#hold out evaluation
+dia_dummy$id <- NULL
+dia_dummy <- dia_dummy[sample(nrow(dia_dummy)),]
+select.data <- sample (1:nrow(dia_dummy), 0.8*nrow(dia_dummy))
+train.data <- dia_dummy[select.data,]
+test.data <- dia_dummy[-select.data,]
+head(train.data)
+head(test.data)
+
+#----------------------------------------------------------------------------------------------
+
+#building a model
+full_dia <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + 
+                 train.data$cutPremium + train.data$`cutVery Good`+ train.data$colorE + train.data$colorF + 
+                 train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + 
+                 train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 + train.data$depth + 
+                 train.data$table + train.data$x + train.data$y + train.data$z, data=train.data)
+summary(full_dia)
+#------------------------------------------------------------------------------------------------------------------
+
+                          #Model selection
+                          #Feature selection
+
+
+#backward using p value
+full_dia <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table + train.data$x + train.data$y + train.data$z, data=train.data)
+summary(full_dia)
+#removing y as p value is greater than 0.05
+full_dia_p_elemination <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table + train.data$x + train.data$z, data=train.data)
+summary(full_dia_p_elemination)
+#removing z
+full_dia_p_elemination <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table + train.data$x, data=train.data)
+summary(full_dia_p_elemination)
+
+    #--------------------------------
+                    #using AIC
+
+#backward
+dia_back <- step(full_dia, direction="backward", data = train.data, trace=T)
+#no of variables 20 total 24 columns hence we dropped 4
+                                #AIC=AIC=606830
+summary(dia_back)
+#Adjusted R-squared:  0.9196
+
+#forward
+dia_base <- lm(train.data$price ~ train.data$carat, data = train.data)
+summary(dia_base)
+dia_forward <- step(dia_base, scope=list(upper=full_dia, lower=~1), data = train.data ,direction = "forward", trace = T)
+                                #AIC=606831.7
+summary(dia_forward)
+#Adjusted R-squared:  0.9126
+#HAS 21 FEATURES
+
+#-----------------------------------------------------------------------------------------------------------------
+
+#residual analysis
+#Standardized residual vs predicted values
+res=rstandard(dia_back)
+#length(res)
+plot( fitted(dia_back), res, main="Predicted vs residuals plot")
+abline(a=0, b=0, col="red")
+#length(train.data)
+
+
+#Standardized residual vs x variables
+plot(train.data$carat, res, main= "carat vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$cutGood, res, main= "Cut-Good vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$cutIdeal, res, main= "Cut-Ideal vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$cutPremium, res, main= "Cut-Premium vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$`cutVery Good`, res, main= "Cut-VeryGood vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$colorE, res, main= "Color E vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$colorF, res, main= "Color F vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$colorG, res, main= "Color G vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$colorH, res, main= "Color H vs residuals plot")
+abline(a=0, b=0,col="red")
+
+#plot(train.data$colorI, res, main= "x vs residuals plot")
+#abline(a=0, b=0,col="red")
+
+plot(train.data$colorI, res, main= "Color I vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$clarityIF, res, main= "Clarity IF vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$claritySI1, res, main= "Clarity SI1 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$claritySI2, res, main= "Clarity SI2 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$clarityVS1, res, main= "Clarity VS1 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$clarityVS2, res, main= "Clarity VS2 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$clarityVVS1, res, main= "Clarity VVS1 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$clarityVVS2, res, main= "Clarity VVS2 vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$depth, res, main= "Depth vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$table, res, main= "Table vs residuals plot")
+abline(a=0, b=0,col="red")
+
+plot(train.data$x, res, main= "X direction vs residuals plot")
+abline(a=0, b=0,col="red")
+
+#plot(train.data$y, res, main= "x vs residuals plot")
+#abline(a=0, b=0,col="red")
+
+plot(train.data$z, res, main= "Z direction vs residuals plot")
+abline(a=0, b=0,col="red")
+
+#Examine residuals are normal or not
+
+qqnorm(res)
+qqline(res,col=2)
+
+install.packages("tseries")
+library(tseries)
+
+jarque.bera.test(res)
+ #-------------------------------------------------------------------------------------------------------------
+
+#RMSE 
+y1=predict.glm(dia_back,test.data)
+y=test.data[,21]
+dia_rmse1 = sqrt((y-y1)%*%(y-y1) /nrow(test.data) )
+dia_rmse1
+
+y1=predict.glm(full_dia_p_elemination,test.data)
+y=test.data[,21]
+dia_rmse2 = sqrt((y-y1)%*%(y-y1) /nrow(test.data) )
+dia_rmse2
+#--------------------------------------------------------------------------------------------
+        
+                                          #POST PROCESSING
+#VIF
+# Evaluate Collinearity
+install.packages("car")
+library(car)
+vif(dia_back) # variance inflation factors 
+cor(train.data, method = "pearson")
+#------------------------------------------------------------------------------------------------
+
+                                          #rebuilding the model
+
+#models
+
+#building a model
+full_dia_coli <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH  + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table + train.data$y + train.data$z, data=train.data)
+summary(full_dia_coli)
+#------------------------------------------------------------------------------------------------------------------
+#Model selection
+#Feature selection
+#backward using p value
+full_dia_coli <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table + train.data$y + train.data$z, data=train.data)
+summary(full_dia_coli)
+#removing depth as p value is greater than 0.05
+full_dia_p_elemination_coli <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+                               train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+                               train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                               + train.data$table + train.data$y + train.data$z, data=train.data)
+summary(full_dia_p_elemination_coli)
+#removing z
+#full_dia_p_elemination <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutIdeal + train.data$cutPremium + train.data$`cutVery Good`+
+#                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH + train.data$colorI + train.data$colorJ +
+#                 train.data$clarityIF + train.data$claritySI1 + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+#                 train.data$depth + train.data$table + train.data$x, data=train.data)
+#summary(full_dia_p_elemination)
+
+#--------------------------------
+#using AIC
+
+#backward
+dia_back_coli <- step(full_dia_coli, direction="backward", data = train.data, trace=T)
+#no of variables 20 total 24 columns hence we dropped 4
+#AIC=610783.6
+summary(dia_back_coli)
+#Adjusted R-squared:  0.912
+
+#forward
+dia_base_coli <- lm(train.data$price ~ train.data$carat, data = train.data)
+summary(dia_base_coli)
+dia_forward_coli <- step(dia_base_coli, scope=list(upper=full_dia_coli, lower=~1), data = train.data ,direction = "forward", trace = T)
+#AIC=610783.6
+summary(dia_forward_coli)
+#Adjusted R-squared:  0.912
+#HAS 20 FEATURES
+#rmse
+y1_coli=predict.glm(dia_back_coli,test.data)
+y_coli=test.data[,21]
+dia_rmse1_coli = sqrt((y_coli-y1_coli)%*%(y_coli-y1_coli) /nrow(test.data) )
+dia_rmse1_coli
+
+y2_coli=predict.glm(full_dia_p_elemination_coli,test.data)
+y3_coli=test.data[,21]
+dia_rmse2_coli = sqrt((y3_coli-y2_coli)%*%(y3_coli-y2_coli) /nrow(test.data) )
+dia_rmse2_coli
+
+#VIF
+# Evaluate Collinearity
+vif(dia_back_coli) # variance inflation factors 
+cor(train.data, method = "pearson")
+                                                  #Rebuilding the model
+
+
+
+#rebuilding the model
+
+#models
+
+#building a model
+full_dia_coli <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutPremium + train.data$`cutVery Good`+
+                      train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH  + train.data$colorJ +
+                      train.data$clarityIF + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                      train.data$depth + train.data$table, data=train.data)
+summary(full_dia_coli)
+#------------------------------------------------------------------------------------------------------------------
+#using AIC
+
+#backward
+dia_back_coli <- step(full_dia_coli, direction="backward", data = train.data, trace=T)
+#no of variables 20 total 24 columns hence we dropped 4
+#AIC=612082.8 #617423.6
+summary(dia_back_coli)
+#Adjusted R-squared:  0.9093
+
+#forward
+dia_base_coli <- lm(train.data$price ~ train.data$carat, data = train.data)
+summary(dia_base_coli)
+dia_forward_coli <- step(dia_base_coli, scope=list(upper=full_dia_coli, lower=~1), data = train.data ,direction = "forward", trace = T)
+#AIC=612082.8 #same
+summary(dia_forward_coli)
+#Adjusted R-squared:  0.9093
+#HAS 20 FEATURES
+
+#rmse
+y1_coli=predict.glm(dia_back_coli,test.data)
+y_coli=test.data[,21]
+dia_rmse1_coli = sqrt((y_coli-y1_coli)%*%(y_coli-y1_coli) /nrow(test.data) )
+dia_rmse1_coli
+
+y2_coli=predict.glm(full_dia_coli,test.data)
+y3_coli=test.data[,21]
+dia_rmse2_coli = sqrt((y3_coli-y2_coli)%*%(y3_coli-y2_coli) /nrow(test.data) )
+dia_rmse2_coli
+
+#VIF
+# Evaluate Collinearity
+vif(dia_back_coli) # variance inflation factors 
+summary(dia_back_coli)
+#names(dia_back_coli)
+#-----------------------------------------------------------------------------------------------------------------
+
+                                              #outliners
+
+cooks.distance(dia_back_coli)
+summary(influence.measures(dia_back_coli))
+?cooks.distance()
+devAskNewPage(ask = FALSE)
+plot(dia_back_coli)
+
+plot(train.data$price~train.data$cutGood)
+plot(train.data$price~train.data$cutPremium)
+plot(train.data$price~train.data$`cutVery Good`)
+ library(ggplot2)
+qplot(dia_og$price, dia_og$cut, data = dia_og)
+qplot(dia_og$price, dia_og$color, data = dia_og)
+cor(train.data, method = "pearson")
+
+cooksd <- cooks.distance(dia_back_coli)
+#plot(cooksd, pch="*", cex=2, main="Influential Obs by Cooks distance")  # plot cook's distance
+#abline(h = 4*mean(cooksd, na.rm=T), col="red")  # add cutoff line
+#text(x=1:length(cooksd)+1, y=cooksd, labels=ifelse(cooksd>4*mean(cooksd, na.rm=T),names(cooksd),""), col="red")  # add labels
+influential <- as.numeric(names(cooksd)[(cooksd > 4/nrow(train.data))])  # influential row numbers
+head(dia_dummy[influential, ])
+
+cooksd <- cooks.distance(dia_back_coli)
+# influential row numbers
+influential <- as.numeric(names(cooksd)[(cooksd > 4/nrow(train.data))])  
+head(dia_dummy[influential, ])
+
+#train.data1 <- train.data
+#train.data <- train.data[-c(52533, 8379, 17651,52971,41013,38591), ]
+
+#---------------------------Rebuilding model-----------------------------------------------------
+
+
+full_dia1 <- lm(train.data$price ~ train.data$carat + train.data$cutGood + train.data$cutPremium + train.data$`cutVery Good`+
+                 train.data$colorE + train.data$colorF + train.data$colorG + train.data$colorH  + train.data$colorJ +
+                 train.data$clarityIF + train.data$claritySI2 + train.data$clarityVS1 + train.data$clarityVS2 + train.data$clarityVVS1 + train.data$clarityVVS2 +
+                 train.data$depth + train.data$table, data=train.data)
+summary(full_dia1)
+#backward
+dia_back1 <- step(full_dia1, direction="backward", data = train.data, trace=T)
+summary(dia_back1)
+
+res1=rstandard(dia_back1)
+#length(res)
+plot( fitted(dia_back1), res1, main="Predicted vs residuals plot")
+abline(a=0, b=0, col="red")
+#length(train.data)
+qqnorm(res1)
+qqline(res1,col=2)
+
+install.packages("tseries")
+library(tseries)
+
+jarque.bera.test(res1)
+
+vif(dia_back1)
+
+y1_coli=predict.glm(dia_back1,test.data)
+y_coli=test.data[,21]
+dia_rmse1_coli = sqrt((y_coli-y1_coli)%*%(y_coli-y1_coli) /nrow(test.data) )
+dia_rmse1_coli
+
+cooksd1 <- cooks.distance(dia_back1)
+# influential row numbers
+influential1 <- as.numeric(names(cooksd1)[(cooksd1 > 4/nrow(train.data))])  
+head(train.data[influential1, ])
+train.data1 <- train.data[-c(19534, 31109, 17573,37886,32318), ]
+
+full_dia12 <- lm(train.data1$price ~ train.data1$carat + train.data1$cutGood + train.data1$cutPremium + 
+                  train.data1$`cutVery Good`+
+                  train.data1$colorE + train.data1$colorF + train.data1$colorG + train.data1$colorH  + 
+                  train.data1$colorJ +
+                  train.data1$clarityIF + train.data1$claritySI2 + train.data1$clarityVS1 + 
+                  train.data1$clarityVS2 + train.data1$clarityVVS1 + train.data1$clarityVVS2 +
+                  train.data1$depth + train.data1$table, data=train.data1)
+summary(full_dia12)
+#backward
+dia_back12 <- step(full_dia12, direction="backward", data = train.data1, trace=T)
+summary(dia_back12)
+
+y1_coli=predict.glm(dia_back12,test.data)
+y_coli=test.data[,21]
+dia_rmse1_coli = sqrt((y_coli-y1_coli)%*%(y_coli-y1_coli) /nrow(test.data) )
+dia_rmse1_coli
+
+
+
+

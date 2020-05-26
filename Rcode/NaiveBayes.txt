@@ -1,0 +1,79 @@
+#getwd()
+#setwd("C://Users//vaish//OneDrive//Desktop//Data Analytics//DA Project 2020 (diamonds)//diamonds.csv")
+mydata <- read.csv(file = "diamonds.csv", header = T)
+head(knndata)
+
+#convert outcome variable into labels 
+cost <- knndata$price
+mean(cost)
+cost <- cut(cost, breaks = c(0,4000,1000000), labels = c("Inexpensive","Expensive") )
+head(cost)
+
+mydata$price <- cost
+head(mydata)
+
+#check for zero in dataset
+lapply(mydata, function(x) all(x == 0))
+
+#removing the sr no column
+mydata$X <- NULL
+
+#check for collinearity
+num <- data.frame(mydata$carat, mydata$depth, mydata$table, mydata$x, mydata$y, mydata$z)
+head(num)
+cor(num)
+
+#collinearity between carat x,y and z is very high so we remove the variables
+num$mydata.x <- NULL
+cor(num)
+num$mydata.y <- NULL
+cor(num)
+num$mydata.z <- NULL
+cor(num)
+
+mydata$x <- NULL
+mydata$y <- NULL
+mydata$z <- NULL
+
+#Normalization
+#extract numerical variables as we have categorical columns
+num.vars<-sapply(mydata, is.numeric)
+#normalize selected data using function scale
+mydata[num.vars] <-lapply(mydata[num.vars], scale)
+#min-max normalization to scale [0, 1]
+mydata[num.vars] <-apply(mydata[num.vars], 2, FUN = function(x) (x - min(x))/(max(x)-min(x)))
+head(mydata)  
+
+
+#hold out evaluation
+mydata <- mydata[sample(nrow(mydata)),]
+select.datan <- sample (1:nrow(mydata), 0.8*nrow(mydata))
+train.datan <- mydata[select.data,]
+test.datan <- mydata[-select.data,]
+test.naive <- test.datan
+train.naive <- train.datan
+
+nrow(test.naive)
+nrow(train.naive)
+
+#naive model
+#install.packages("e1071")
+library(e1071)
+
+naive <- naiveBayes(train.naive$price~. , data = train.naive)
+naive
+
+#predict
+#install.packages("caret")
+library(caret)
+pre_naive = predict(naive, test.naive, type = "raw")
+head(pre_naive)
+confusionMatrix(table(pre_naive,test.naive$price))
+
+
+
+
+
+
+
+

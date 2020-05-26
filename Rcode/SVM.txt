@@ -1,0 +1,104 @@
+getwd()
+setwd("C://Users//vaish//OneDrive//Desktop//Data Analytics//DA Project 2020 (diamonds)//diamonds.csv")
+data <- read.csv(file = "diamonds.csv", header = T)
+head(data)
+
+#convert outcome variable into labels 
+cost <- data$price
+mean(cost)
+cost <- cut(cost, breaks = c(0,4000,1000000), labels = c("Inexpensive","Expensive") )
+head(cost)
+
+data$price <- cost
+head(data)
+
+#check for zero in dataset
+lapply(data, function(x) all(x == 0))
+
+#removing the sr no column
+data$X <- NULL
+
+#check for collinearity
+num <- data.frame(data$carat, data$depth, data$table, data$x, data$y, data$z, data$price)
+head(num)
+cor(num)
+
+#collinearity between carat x,y and z is very high so we remove the variables
+num$data.x <- NULL
+cor(num)
+num$data.y <- NULL
+cor(num)
+num$data.z <- NULL
+cor(num)
+
+data$x <- NULL
+data$y <- NULL
+data$z <- NULL
+
+#dummy variables
+#install.packages("dummies")
+library(dummies)
+as.factor(data$cut)
+data <- dummy.data.frame(data,names=c("cut"))
+data = data [ , -c(2) ]
+#(dia_dummy)
+as.factor(data$color)
+data <- dummy.data.frame(data,names=c("color"))
+data = data [ , -c(6) ]
+#head(dia_dummy)
+as.factor(data$clarity)
+data <- dummy.data.frame(data,names=c("clarity"))
+data = data [ , -c(12) ]
+head(data)
+
+
+#Normalization
+#extract numerical variables as we have categorical columns
+num.vars<-sapply(data, is.numeric)
+#normalize selected data using function scale
+data[num.vars] <-lapply(data[num.vars], scale)
+#min-max normalization to scale [0, 1]
+data[num.vars] <-apply(data[num.vars], 2, FUN = function(x) (x - min(x))/(max(x)-min(x)))
+head(data)  
+
+
+#hold out evaluation
+data <- data[sample(nrow(data)),]
+select.datasvm <- sample (1:nrow(data), 0.8*nrow(data))
+train.datasvm <- data[select.datasvm,]
+test.datasvm <- data[-select.datasvm,]
+test.svm <- test.datasvm
+train.svm <- train.datasvm
+head(train.svm)
+nrow(test.svm)
+nrow(train.svm)
+
+#svm model
+#install.packages("e1071")
+library(e1071)
+#install.packages("caret")
+library(caret)
+#install.packages("kernlab")
+library(kernlab)
+
+svm1 <- svm(train.svm$price~. , data = train.svm, kernel = "linear", cost = 0.1, scale = F)
+#summary(svm1)
+#plot(svm1,train.svm[,])
+
+#predict
+#install.packages("caret")
+library(caret)
+pre_svm = predict(svm1, test.svm, type = "class")
+#plot(pre_svm)
+table(pre_svm, test.svm$price)
+mean(pre_svm==test.svm$price)
+
+confusionMatrix(table(pre_svm,test.svm$price))
+
+
+
+
+
+
+
+

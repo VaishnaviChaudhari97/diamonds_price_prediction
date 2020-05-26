@@ -1,0 +1,110 @@
+getwd()
+setwd("C://Users//vaish//OneDrive//Desktop//Data Analytics//DA Project 2020 (diamonds)//diamonds.csv")
+rfdata <- read.csv(file = "diamonds.csv", header = T)
+head(rfdata)
+
+#convert outcome variable into labels 
+cost <- rfdata$price
+mean(cost)
+cost <- cut(cost, breaks = c(0,4000,1000000), labels = c(0,1) )
+head(cost)
+
+rfdata$price <- cost
+head(rfdata)
+
+#check for zero in dataset
+lapply(rfdata, function(x) all(x == 0))
+
+#removing the sr no column
+rfdata$X <- NULL
+
+#check for collinearity
+num <- data.frame(rfdata$carat, rfdata$depth, rfdata$table, rfdata$x, rfdata$y, rfdata$z)
+head(num)
+cor(num)
+
+#collinearity between carat x,y and z is very high so we remove the variables
+num$rfdata.x <- NULL
+cor(num)
+num$rfdata.y <- NULL
+cor(num)
+num$rfdata.z <- NULL
+cor(num)
+
+rfdata$x <- NULL
+rfdata$y <- NULL
+rfdata$z <- NULL
+
+#Normalization
+#extract numerical variables as we have categorical columns
+num.vars<-sapply(rfdata, is.numeric)
+#normalize selected data using function scale
+rfdata[num.vars] <-lapply(rfdata[num.vars], scale)
+#min-max normalization to scale [0, 1]
+rfdata[num.vars] <-apply(rfdata[num.vars], 2, FUN = function(x) (x - min(x))/(max(x)-min(x)))
+head(rfdata)  
+
+
+#hold out evaluation
+rfdata <- rfdata[sample(nrow(rfdata)),]
+select.datarf <- sample (1:nrow(rfdata), 0.8*nrow(rfdata))
+train.datarf <- rfdata[select.datarf,]
+test.datarf <- rfdata[-select.datarf,]
+test.rf <- test.datarf
+train.rf <- train.datarf
+
+nrow(test.rf)
+nrow(train.rf)
+
+#naive model
+install.packages("randomForest")
+library(randomForest)
+
+rf <- randomForest(train.rf$price~. , data = train.rf)
+rf
+attributes(rf)
+
+#predict
+#install.packages("caret")
+library(caret)
+pre_rf = predict(rf, test.rf)
+head(pre_rf)
+head(test.rf$price)
+confusionMatrix(table(pre_rf,test.rf$price))
+plot(rf)
+head(train.rf)
+
+#tuning
+t <- tuneRF(train.rf[,-7], train.rf[,7],
+            stepFactor = 05, plot = TRUE,
+            ntreeTry = 100, trace = TRUE,
+            improve = 0.05)
+
+#rebuilding
+rf <- randomForest(train.rf$price~., 
+                   data = train.rf, ntree= 100,
+                   mtry=2,
+                   importance=TRUE,
+                   proximity=TRUE)
+rf
+attributes(rf)
+#it is giving an error cannot allocate vector of size 13.9 Gb
+
+#histogram:
+hist(treesize(rf), main = "number of nodes for trees",
+     col = "green")
+
+#variable used
+varUsed(rf)
+
+#partial dependence plot
+partialPlot(rf, train.rf, carat, "1")
+
+#extract single tree
+getTree(rf, 1, labelVar = T)
+
+#multidimensional scaling plot:
+MDSplot(rf, train.rf$price)
+
+
+
